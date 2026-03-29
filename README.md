@@ -6,32 +6,40 @@ Living Lab is my engineering organization dedicated to building ultra-high-perfo
 ## 🏛️ The Project: `living-limiter`
 A 1,000,000+ req/s rate limiting engine using C++ atomics and my hybrid lease protocols.
 
-### 📐 Project Architecture
+### 📐 The Blueprint: High-Velocity Architecture
 ```mermaid
 graph TD
-    Client[Incoming Request] -->|HTTP| Gateway(Spring Web Filter)
+    %% Global Styling
+    classDef default fill:#1a1a1a,stroke:#333,stroke-width:2px,color:#fff;
+    classDef client fill:#00d4ff,stroke:#00d4ff,stroke-width:4px,color:#000,font-weight:bold;
+    classDef brain fill:#39ff14,stroke:#39ff14,stroke-width:2px,color:#000,font-weight:bold;
+    classDef vault fill:#7b2ff7,stroke:#7b2ff7,stroke-width:2px,color:#fff;
+    classDef sentinel fill:#ff3131,stroke:#ff3131,stroke-width:2px,color:#fff;
+    classDef proceed fill:#00ffa3,stroke:#00ffa3,stroke-width:2px,color:#000;
+
+    Client((Incoming Traffic)):::client -->|Raw Payload| Interceptor{The Sentinel}:::sentinel
     
-    subgraph "Rate Limiter Starter (Java 21 Virtual Threads)"
-        Gateway -->|Extracts IP/User ID| Interceptor(RateLimit Interceptor)
-        Interceptor --> Factory{Strategy Factory}
-        
-        Factory -->|"@RateLimit(strategy=TOKEN_BUCKET)"| TB[Token Bucket Engine]
-        Factory -->|"@RateLimit(strategy=LEAKY_BUCKET)"| LB[Leaky Bucket Engine]
-        Factory -->|"@RateLimit(strategy=FIXED_WINDOW)"| FW[Fixed Window Engine]
-        Factory -->|"@RateLimit(strategy=SLIDING_WINDOW)"| SW[Sliding Window Engine]
+    subgraph "living-limiter: The Intelligence Core"
+        Interceptor -->|Analyze| Factory[Strategy Factory]
+        Factory -->|Leased| TB((Token Bucket)):::brain
+        Factory -->|Shaped| LB((Leaky Bucket)):::brain
+        Factory -->|Precise| SWL((Sliding Window)):::brain
     end
 
-    subgraph "Distributed State"
-        TB -->|"Lua Script / EVALSHA"| Redis[(Reactive Redis cluster)]
-        LB -->|"Lua Script / EVALSHA"| Redis
-        FW -->|"INCR, EXPIRE"| Redis
-        SW -->|"Pipelined: ZREM, ZCARD, ZADD"| Redis
+    subgraph "Distributed Persistence"
+        TB <-->|Batch Sync| Redis[(Global Redis Vault)]:::vault
+        LB <-->|Sync| Redis
+        SWL <-->|Log Sync| Redis
     end
 
-    Redis -.->|"Decision (Allow/Deny)"| Interceptor
-    
-    Interceptor -->|"429 Too Many Requests"| Client
-    Interceptor -->|Proceed| Controller(Upstream Service / Controller)
+    Interceptor -.->|BLOCKED: 429| Deny([Access Denied]):::sentinel
+    Interceptor -->|ALLOWED| App([Upstream Service]):::proceed
+
+    %% Links styling
+    linkStyle default stroke:#555,stroke-width:2px;
+    linkStyle 0,1,2,3,4 stroke:#00d4ff,stroke-width:3px;
+    linkStyle 8 stroke:#00ffa3,stroke-width:4px;
+    linkStyle 7 stroke:#ff3131,stroke-width:4px;
 ```
 
 ## 🧬 My Engineering Principles
