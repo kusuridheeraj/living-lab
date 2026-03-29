@@ -17,35 +17,35 @@ graph TD
     classDef sentinel fill:#ff3131,stroke:#ff3131,stroke-width:2px,color:#fff;
     classDef proceed fill:#00ffa3,stroke:#00ffa3,stroke-width:2px,color:#000;
 
-    Client((Incoming Traffic)):::client -->|Raw Payload| Gateway(Spring Web Filter)
+    Client((Incoming Traffic)):::client -->|HTTP| Gateway(Spring Web Filter)
     
     subgraph "living-limiter: The Intelligence Core"
         Gateway -->|Extract Headers| Interceptor{The Sentinel}:::sentinel
         Interceptor --> Factory{Strategy Factory}
         
-        Factory -->|Leased| TB((Token Bucket)):::brain
-        Factory -->|Shaped| LB((Leaky Bucket)):::brain
-        Factory -->|Precise| SWL((Sliding Window)):::brain
-        Factory -->|Atomic| FW((Fixed Window)):::brain
+        Factory -->|"@RateLimit(strategy=TOKEN_BUCKET)"| TB((Token Bucket)):::brain
+        Factory -->|"@RateLimit(strategy=LEAKY_BUCKET)"| LB((Leaky Bucket)):::brain
+        Factory -->|"@RateLimit(strategy=FIXED_WINDOW)"| FW((Fixed Window)):::brain
+        Factory -->|"@RateLimit(strategy=SLIDING_WINDOW)"| SW((Sliding Window)):::brain
     end
 
     subgraph "Distributed Persistence"
-        TB <-->|Batch Sync| Redis[(Global Redis Vault)]:::vault
-        LB <-->|Sync| Redis
-        SWL <-->|Log Sync| Redis
-        FW <-->|Atomic Sync| Redis
+        TB -->|"Lua Script / EVALSHA"| Redis[(Global Redis Vault)]:::vault
+        LB -->|"Lua Script / EVALSHA"| Redis
+        FW -->|"INCR, EXPIRE"| Redis
+        SW -->|"Pipelined: ZREM, ZCARD, ZADD"| Redis
     end
 
-    Redis -.->|Decision| Interceptor
+    Redis -.->|"Decision (Allow/Deny)"| Interceptor
     
-    Interceptor -.->|BLOCKED: 429| Deny([Access Denied]):::sentinel
-    Interceptor -->|ALLOWED| App([Upstream Service]):::proceed
+    Interceptor -.->|"429 Too Many Requests"| Deny([Access Denied]):::sentinel
+    Interceptor -->|Proceed| App([Upstream Service / Controller]):::proceed
 
     %% Links styling
     linkStyle default stroke:#555,stroke-width:2px;
-    linkStyle 0,1,2,3,4,5,6 stroke:#00d4ff,stroke-width:2px;
-    linkStyle 13 stroke:#00ffa3,stroke-width:4px;
-    linkStyle 12 stroke:#ff3131,stroke-width:4px;
+    linkStyle 0,1,2,3 stroke:#00d4ff,stroke-width:2px;
+    linkStyle 13 stroke:#ff3131,stroke-width:4px;
+    linkStyle 14 stroke:#00ffa3,stroke-width:4px;
 ```
 
 ## 🧬 My Engineering Principles
