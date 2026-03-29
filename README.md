@@ -17,29 +17,35 @@ graph TD
     classDef sentinel fill:#ff3131,stroke:#ff3131,stroke-width:2px,color:#fff;
     classDef proceed fill:#00ffa3,stroke:#00ffa3,stroke-width:2px,color:#000;
 
-    Client((Incoming Traffic)):::client -->|Raw Payload| Interceptor{The Sentinel}:::sentinel
+    Client((Incoming Traffic)):::client -->|Raw Payload| Gateway(Spring Web Filter)
     
     subgraph "living-limiter: The Intelligence Core"
-        Interceptor -->|Analyze| Factory[Strategy Factory]
+        Gateway -->|Extract Headers| Interceptor{The Sentinel}:::sentinel
+        Interceptor --> Factory{Strategy Factory}
+        
         Factory -->|Leased| TB((Token Bucket)):::brain
         Factory -->|Shaped| LB((Leaky Bucket)):::brain
         Factory -->|Precise| SWL((Sliding Window)):::brain
+        Factory -->|Atomic| FW((Fixed Window)):::brain
     end
 
     subgraph "Distributed Persistence"
         TB <-->|Batch Sync| Redis[(Global Redis Vault)]:::vault
         LB <-->|Sync| Redis
         SWL <-->|Log Sync| Redis
+        FW <-->|Atomic Sync| Redis
     end
 
+    Redis -.->|Decision| Interceptor
+    
     Interceptor -.->|BLOCKED: 429| Deny([Access Denied]):::sentinel
     Interceptor -->|ALLOWED| App([Upstream Service]):::proceed
 
     %% Links styling
     linkStyle default stroke:#555,stroke-width:2px;
-    linkStyle 0,1,2,3,4 stroke:#00d4ff,stroke-width:3px;
-    linkStyle 8 stroke:#00ffa3,stroke-width:4px;
-    linkStyle 7 stroke:#ff3131,stroke-width:4px;
+    linkStyle 0,1,2,3,4,5,6 stroke:#00d4ff,stroke-width:2px;
+    linkStyle 13 stroke:#00ffa3,stroke-width:4px;
+    linkStyle 12 stroke:#ff3131,stroke-width:4px;
 ```
 
 ## 🧬 My Engineering Principles
