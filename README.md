@@ -18,11 +18,11 @@ graph TD
     classDef proceed fill:#00ffa3,stroke:#00ffa3,stroke-width:2px,color:#000;
 
     Client((Incoming Traffic)):::client -->|HTTP| Gateway(Spring Web Filter)
-    
+
     subgraph "living-limiter: The Intelligence Core"
         Gateway -->|Extract Headers| Interceptor{The Sentinel}:::sentinel
         Interceptor --> Factory{Strategy Factory}
-        
+
         Factory -->|"@RateLimit(strategy=TOKEN_BUCKET)"| TB((Token Bucket)):::brain
         Factory -->|"@RateLimit(strategy=LEAKY_BUCKET)"| LB((Leaky Bucket)):::brain
         Factory -->|"@RateLimit(strategy=FIXED_WINDOW)"| FW((Fixed Window)):::brain
@@ -37,16 +37,11 @@ graph TD
     end
 
     Redis -.->|"Decision (Allow/Deny)"| Interceptor
-    
+
     Interceptor -.->|"429 Too Many Requests"| Deny([Access Denied]):::sentinel
     Interceptor -->|Proceed| App([Upstream Service / Controller]):::proceed
-
-    %% Links styling
-    linkStyle default stroke:#555,stroke-width:2px;
-    linkStyle 0,1,2,3 stroke:#00d4ff,stroke-width:2px;
-    linkStyle 13 stroke:#ff3131,stroke-width:4px;
-    linkStyle 14 stroke:#00ffa3,stroke-width:4px;
 ```
+
 
 ## 🧬 My Engineering Principles
 1. **Performance First:** Everything I build is in C++/Java with a focus on lock-free concurrency.
