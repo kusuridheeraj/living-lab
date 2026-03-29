@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "pybind11>=2.10", "cmake>=3.20"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "living-limiter"
+version = "0.1.0"
+description = "Living Lab: A 1,000,000+ req/s rate limiting engine using C++ atomics."
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [{name = "Living Lab Team"}]
+keywords = ["rate-limit", "performance", "cpp", "python", "latency"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.setuptools]
+packages = ["living_limiter"]
+package-dir = {"" = "python"}
+
+[tool.cibuildwheel]
+# Build C++20 code
+build-verbosity = 1
+test-command = "python -c \"import living_limiter; print('Success')\""
+
+[tool.cibuildwheel.linux]
+before-all = "yum install -y cmake"
+
+[tool.cibuildwheel.macos]
+before-all = "brew install cmake"
+
+[tool.cibuildwheel.windows]
+before-all = "pip install cmake"
