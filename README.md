@@ -17,31 +17,30 @@ graph TD
     classDef sentinel fill:#ff3131,stroke:#ff3131,stroke-width:2px,color:#fff;
     classDef proceed fill:#00ffa3,stroke:#00ffa3,stroke-width:2px,color:#000;
 
-    Client((Incoming Traffic)):::client -->|HTTP| Gateway(Spring Web Filter)
+    Client((Incoming Traffic)):::client -->|HTTP| Gateway(FastAPI Middleware)
 
     subgraph "living-limiter: The Intelligence Core"
         Gateway -->|Extract Headers| Interceptor{The Sentinel}:::sentinel
         Interceptor --> Factory{Strategy Factory}
 
-        Factory -->|"@RateLimit(strategy=TOKEN_BUCKET)"| TB((Token Bucket)):::brain
-        Factory -->|"@RateLimit(strategy=LEAKY_BUCKET)"| LB((Leaky Bucket)):::brain
-        Factory -->|"@RateLimit(strategy=FIXED_WINDOW)"| FW((Fixed Window)):::brain
-        Factory -->|"@RateLimit(strategy=SLIDING_WINDOW)"| SW((Sliding Window)):::brain
+        Factory -->|"@rate_limit(strategy=TOKEN_BUCKET)"| TB((Token Bucket)):::brain
+        Factory -->|"@rate_limit(strategy=LEAKY_BUCKET)"| LB((Leaky Bucket)):::brain
+        Factory -->|"@rate_limit(strategy=FIXED_WINDOW)"| FW((Fixed Window)):::brain
+        Factory -->|"@rate_limit(strategy=SLIDING_WINDOW)"| SW((Sliding Window)):::brain
     end
 
     subgraph "Distributed Persistence"
-        TB -->|"Lua Script / EVALSHA"| Redis[(Global Redis Vault)]:::vault
-        LB -->|"Lua Script / EVALSHA"| Redis
-        FW -->|"INCR, EXPIRE"| Redis
-        SW -->|"Pipelined: ZREM, ZCARD, ZADD"| Redis
+        TB -->|"C++ Redis Sync"| Redis[(Global Redis Vault)]:::vault
+        LB -->|"C++ Redis Sync"| Redis
+        FW -->|"C++ Redis Sync"| Redis
+        SW -->|"C++ Redis Sync"| Redis
     end
 
     Redis -.->|"Decision (Allow/Deny)"| Interceptor
 
     Interceptor -.->|"429 Too Many Requests"| Deny([Access Denied]):::sentinel
-    Interceptor -->|Proceed| App([Upstream Service / Controller]):::proceed
+    Interceptor -->|Proceed| App([Upstream FastAPI Route]):::proceed
 ```
-
 
 ## 🧬 My Engineering Principles
 1. **Performance First:** Everything I build is in C++/Java with a focus on lock-free concurrency.

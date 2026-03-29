@@ -1,24 +1,24 @@
 graph TD
-    Client[Incoming Request] -->|HTTP| Gateway(Spring Web Filter)
+    Client[Incoming Request] -->|HTTP| Gateway(FastAPI Middleware)
     
-    subgraph "Rate Limiter Starter (Java 21 Virtual Threads)"
-        Gateway -->|Extracts IP/User ID| Interceptor(RateLimit Interceptor)
+    subgraph "living-limiter (Python Asyncio + C++ Core)"
+        Gateway -->|Extract Headers| Interceptor(Sentinel Interceptor)
         Interceptor --> Factory{Strategy Factory}
         
-        Factory -->|"@RateLimit(strategy=TOKEN_BUCKET)"| TB[Token Bucket Engine]
-        Factory -->|"@RateLimit(strategy=LEAKY_BUCKET)"| LB[Leaky Bucket Engine]
-        Factory -->|"@RateLimit(strategy=FIXED_WINDOW)"| FW[Fixed Window Engine]
-        Factory -->|"@RateLimit(strategy=SLIDING_WINDOW)"| SW[Sliding Window Engine]
+        Factory -->|"@rate_limit(strategy=TOKEN_BUCKET)"| TB[Token Bucket Engine]
+        Factory -->|"@rate_limit(strategy=LEAKY_BUCKET)"| LB[Leaky Bucket Engine]
+        Factory -->|"@rate_limit(strategy=FIXED_WINDOW)"| FW[Fixed Window Engine]
+        Factory -->|"@rate_limit(strategy=SLIDING_WINDOW)"| SW[Sliding Window Engine]
     end
 
-    subgraph "Distributed State"
-        TB -->|"Lua Script / EVALSHA"| Redis[(Reactive Redis cluster)]
-        LB -->|"Lua Script / EVALSHA"| Redis
-        FW -->|"INCR, EXPIRE"| Redis
-        SW -->|"Pipelined: ZREM, ZCARD, ZADD"| Redis
+    subgraph "Distributed Persistence"
+        TB -->|"C++ Redis Sync"| Redis[(Global Redis Vault)]
+        LB -->|"C++ Redis Sync"| Redis
+        FW -->|"C++ Redis Sync"| Redis
+        SW -->|"C++ Redis Sync"| Redis
     end
 
     Redis -.->|"Decision (Allow/Deny)"| Interceptor
     
-    Interceptor -->|"429 Too Many Requests"| Client
-    Interceptor -->|Proceed| Controller(Upstream Service / Controller)
+    Interceptor -.->|"429 Too Many Requests"| Client
+    Interceptor -->|Proceed| Controller(Upstream FastAPI Route)
