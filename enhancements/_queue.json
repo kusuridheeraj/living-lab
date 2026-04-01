@@ -1,0 +1,36 @@
+{
+  "items": [
+    {
+      "id": "ltc-001",
+      "slug": "jittered-lease-core",
+      "title": "Implement Jittered Lease Renewal Core",
+      "description": "Develop the C++ core for randomized lease refresh offsets to eliminate thundering herds in Redis.",
+      "status": "BACKLOG",
+      "wave": 1
+    },
+    {
+      "id": "ltc-002",
+      "slug": "probabilistic-refresh",
+      "title": "Probabilistic Early Refresh Logic",
+      "description": "Add probabilistic logic to ensure only a subset of nodes hit the backing store under high contention.",
+      "status": "BACKLOG",
+      "wave": 1
+    },
+    {
+      "id": "ltc-003",
+      "slug": "fastapi-sentinel-middleware",
+      "title": "FastAPI Sentinel Interceptor",
+      "description": "Create the Python middleware that bridges FastAPI routes to the C++ Sentinel core.",
+      "status": "BACKLOG",
+      "wave": 1
+    },
+    {
+      "id": "ltc-004",
+      "slug": "shared-memory-seqlock",
+      "title": "Advanced Mode: Shared Memory with Seqlock",
+      "description": "Implement the Versioned Generation Counter for lock-free co-located limiting.",
+      "status": "BACKLOG",
+      "wave": 2
+    }
+  ]
+}

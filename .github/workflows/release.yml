@@ -46,8 +46,26 @@ jobs:
           name: cibw-sdist
           path: dist/*.tar.gz
 
+  build_maven:
+    name: Build Maven Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: maven-jar
+          path: target/*.jar
+
   upload_pypi:
-    needs: [build_wheels, build_sdist]
+    needs: [build_wheels, build_sdist, build_maven]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     steps:
