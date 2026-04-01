@@ -5,7 +5,7 @@
       "slug": "jittered-lease-core",
       "title": "Implement Jittered Lease Renewal Core",
       "description": "Develop the C++ core for randomized lease refresh offsets to eliminate thundering herds in Redis.",
-      "status": "BACKLOG",
+      "status": "DONE",
       "wave": 1
     },
     {
@@ -13,7 +13,7 @@
       "slug": "probabilistic-refresh",
       "title": "Probabilistic Early Refresh Logic",
       "description": "Add probabilistic logic to ensure only a subset of nodes hit the backing store under high contention.",
-      "status": "BACKLOG",
+      "status": "DONE",
       "wave": 1
     },
     {
@@ -21,7 +21,7 @@
       "slug": "fastapi-sentinel-middleware",
       "title": "FastAPI Sentinel Interceptor",
       "description": "Create the Python middleware that bridges FastAPI routes to the C++ Sentinel core.",
-      "status": "BACKLOG",
+      "status": "DONE",
       "wave": 1
     },
     {
