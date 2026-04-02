@@ -8,12 +8,12 @@ def test_leased_token_bucket_basic():
     # Batch size 100
     limiter = RateLimiter(capacity=100, refill_rate=0, strategy="leased")
     
-    # Check 50 requests
+    # Check 50 requests (consumes 50 tokens)
     for _ in range(50):
         assert limiter.check() is True
         
-    # We should still have tokens
-    assert limiter.check(50) is True
+    # We should still have 50 tokens. Consume all 50.
+    assert limiter.check(requested=50) is True
     # Now we should be empty
     assert limiter.check() is False
 
@@ -65,12 +65,10 @@ def test_fastapi_decorator():
     # 5 requests should pass
     for i in range(5):
         response = client.get("/")
-        print(f"Request {i+1}: status={response.status_code}, tokens={limiter.get_remaining()}")
         assert response.status_code == 200
     
     # 6th should be limited
     response = client.get("/")
-    print(f"Request 6: status={response.status_code}, tokens={limiter.get_remaining()}")
     assert response.status_code == 429
 
 def test_fastapi_middleware():

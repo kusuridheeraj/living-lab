@@ -13,9 +13,15 @@ pybind11_add_module(living_limiter_core src/bindings.cpp)
 # Target properties
 target_include_directories(living_limiter_core PRIVATE src)
 
-# Link statically on Windows to avoid DLL load issues
+# Robust Linking for Windows
 if(WIN32)
-    target_link_options(living_limiter_core PRIVATE -static-libgcc -static-libstdc++)
+    if(MSVC)
+        # MSVC specific: Use static runtime to avoid DLL hell in CI
+        set_property(TARGET living_limiter_core PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    else()
+        # MinGW/GCC specific: Static link the GCC runtimes
+        target_link_options(living_limiter_core PRIVATE -static-libgcc -static-libstdc++)
+    endif()
 endif()
 
 # Installation (used by scikit-build-core)
